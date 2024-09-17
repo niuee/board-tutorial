@@ -1,0 +1,19 @@
+{
+  "name": "typescript-template",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && pnpm copy-package",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "copy-package": "cp package.template.json ./build/package.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1",
+    "vite-plugin-dts": "^4.1.0",
+    "vitest": "^2.0.1"
+  }
+}

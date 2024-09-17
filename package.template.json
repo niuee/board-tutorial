@@ -1,0 +1,14 @@
+{
+    "name": "infinite-canvas",
+    "type": "module",
+    "files": ["build"],
+    "main": "./infinite-canvas.umd.cjs",
+    "module": "./infinite-canvas.js",
+    "exports": {
+      ".": {
+        "import": "./infinite-canvas.js",
+        "require": "./infinite-canvas.umd.cjs"
+      }
+    },
+    "types": "./index.d.ts"
+  }
