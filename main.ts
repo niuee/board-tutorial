@@ -1,5 +1,19 @@
 import { Camera } from "./src/camera";
 const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+
+canvas.addEventListener("pointerdown", (event)=>{
+    const clicked = {x: event.clientX, y: event.clientY};
+    const boundingBox = canvas.getBoundingClientRect();
+    const topLeftCorner = {x: boundingBox.left, y: boundingBox.top};
+    const viewPortCenter = {x: topLeftCorner.x + canvas.width / 2, y: topLeftCorner.y + canvas.height / 2};
+    const clickedPointInViewPortSpace = {x: clicked.x - viewPortCenter.x, y: clicked.y - viewPortCenter.y};
+    const clickedPointInWorldSpace = camera.transformViewPort2WorldSpace(clickedPointInViewPortSpace);
+
+    console.log("clicked in view port", clickedPointInViewPortSpace);
+    console.log("clicked in world", clickedPointInWorldSpace);
+});
+
+
 const context = canvas.getContext("2d");
 const camera = new Camera();
 

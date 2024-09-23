@@ -1,4 +1,6 @@
 import { Point } from "vector";
+import { multiplyByScalar, rotateVector, vectorAddition, vectorSubtraction } from "./vector";
+
 
 class Camera {
     private _position: Point;
@@ -33,6 +35,20 @@ class Camera {
     
     setRotation(rotation: number){
         this._rotation = rotation;
+    }
+
+    transformViewPort2WorldSpace(point: Point): Point {
+        const scaledBack = multiplyByScalar(point, 1 / this._zoomLevel);
+        const rotatedBack = rotateVector(scaledBack, this._rotation);
+        const withOffset = vectorAddition(rotatedBack, this._position);
+        return withOffset;
+    }
+
+    transformWorldSpace2ViewPort(point: Point): Point {
+        const withOffset = vectorSubtraction(point, this._position);
+        const scaled = multiplyByScalar(withOffset, this._zoomLevel);
+        const rotated = rotateVector(scaled, -this._rotation);
+        return rotated;
     }
 }
 
