@@ -28,6 +28,11 @@ class Camera {
     setPosition(destination: Point){
         this._position = destination;
     }
+
+    setPositionBy(offset: Point){
+        const destination = vectorAddition(this._position, offset);
+        this.setPosition(destination);
+    }
     
     setZoomLevel(targetZoom: number){
         this._zoomLevel = targetZoom;
@@ -49,6 +54,10 @@ class Camera {
         const scaled = multiplyByScalar(withOffset, this._zoomLevel);
         const rotated = rotateVector(scaled, -this._rotation);
         return rotated;
+    }
+
+    transformVector2WorldSpace(vector: Point): Point{
+        return rotateVector(multiplyByScalar(vector, 1 / this._zoomLevel), this._rotation);
     }
 }
 

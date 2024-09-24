@@ -1,4 +1,5 @@
 import { Camera } from "./src/camera";
+import { KeyboardMouseInput } from "./src/keyboardmouse-input";
 const canvas = document.querySelector("canvas") as HTMLCanvasElement;
 
 canvas.addEventListener("pointerdown", (event)=>{
@@ -16,6 +17,19 @@ canvas.addEventListener("pointerdown", (event)=>{
 
 const context = canvas.getContext("2d");
 const camera = new Camera();
+const keyboardMouseInput = new KeyboardMouseInput(camera); // 加在這裡
+
+canvas.addEventListener("pointerdown", keyboardMouseInput.pointerdownHandler);
+canvas.addEventListener("pointermove", keyboardMouseInput.pointermoveHandler);
+canvas.addEventListener("pointerup", keyboardMouseInput.pointerupHandler);
+canvas.addEventListener("pointerleave", keyboardMouseInput.pointerleaveHandler);
+canvas.addEventListener("pointerdown", keyboardMouseInput.pointerdownHandler);
+canvas.addEventListener("pointermove", keyboardMouseInput.pointermoveHandler);
+canvas.addEventListener("pointerup", keyboardMouseInput.pointerupHandler);
+window.addEventListener("keydown", keyboardMouseInput.keydownHandler);
+window.addEventListener("keyup", keyboardMouseInput.keyupHandler);
+canvas.addEventListener("wheel", keyboardMouseInput.wheelHandler);
+
 
 
 // timestamp 是 requestAnimationFrame 會帶進來的參數
