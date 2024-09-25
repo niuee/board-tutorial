@@ -30,4 +30,7 @@ export default defineConfig({
             fileName: 'infinite-canvas',
         },
     },
+    server: {
+        host: true,
+    }
 })

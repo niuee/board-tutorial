@@ -1,5 +1,7 @@
 import { Camera } from "./src/camera";
 import { KeyboardMouseInput } from "./src/keyboardmouse-input";
+import { TouchInput } from "./src/touch-input";
+
 const canvas = document.querySelector("canvas") as HTMLCanvasElement;
 
 canvas.addEventListener("pointerdown", (event)=>{
@@ -18,6 +20,7 @@ canvas.addEventListener("pointerdown", (event)=>{
 const context = canvas.getContext("2d");
 const camera = new Camera();
 const keyboardMouseInput = new KeyboardMouseInput(camera); // 加在這裡
+const touchInput = new TouchInput(camera);
 
 canvas.addEventListener("pointerdown", keyboardMouseInput.pointerdownHandler);
 canvas.addEventListener("pointermove", keyboardMouseInput.pointermoveHandler);
@@ -29,6 +32,10 @@ canvas.addEventListener("pointerup", keyboardMouseInput.pointerupHandler);
 window.addEventListener("keydown", keyboardMouseInput.keydownHandler);
 window.addEventListener("keyup", keyboardMouseInput.keyupHandler);
 canvas.addEventListener("wheel", keyboardMouseInput.wheelHandler);
+canvas.addEventListener("touchstart", touchInput.touchstartHandler);
+canvas.addEventListener("touchmove", touchInput.touchmoveHandler);
+canvas.addEventListener("touchend", touchInput.touchendHandler);
+canvas.addEventListener("touchcancel", touchInput.touchcancelHandler);
 
 
 
