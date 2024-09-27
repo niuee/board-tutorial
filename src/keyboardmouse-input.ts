@@ -90,6 +90,8 @@ class KeyboardMouseInput {
         event.preventDefault();
         if(event.ctrlKey){
             // 縮放操作
+            const deltaZoomLevel = -event.deltaY * this.camera.zoomLevel * 0.025;
+            this.camera.setZoomLevelBy(deltaZoomLevel);
         } else {
             // 平移操作
             const diff = {x: event.deltaX, y: event.deltaY};

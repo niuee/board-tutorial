@@ -5,22 +5,29 @@ export type PositionBoundary = {
     min: Point;
     max: Point;
 }
+
+export type ZoomLevelBoundary = {
+    min: number;
+    max: number;
+}
 class Camera {
     private _position: Point;
     private _zoomLevel: number;
     private _rotation: number;
     private _positionBoundary: PositionBoundary;
+    private _zoomLevelBoundary: ZoomLevelBoundary;
 
     public viewPortWidth: number;
     public viewPortHeight: number;
 
     public limitEntireViewPort: boolean;
 
-    constructor(viewPortWidth: number = 500, viewPortHeight: number = 500, positionBoundary: PositionBoundary = {min: {x: -1000, y: -1000}, max: {x: 1000, y: 1000}}){
+    constructor(viewPortWidth: number = 500, viewPortHeight: number = 500, positionBoundary: PositionBoundary = {min: {x: -1000, y: -1000}, max: {x: 1000, y: 1000}}, zoomLevelBoundary: ZoomLevelBoundary = {min: 0.1, max: 10}){
         this._position = {x: 0, y: 0};
         this._zoomLevel = 1; // 縮放程度不能夠小於或是等於 0。
         this._rotation = 0;
         this._positionBoundary = positionBoundary;
+        this._zoomLevelBoundary = zoomLevelBoundary;
         this.viewPortHeight = viewPortHeight;
         this.viewPortWidth = viewPortWidth;
         this.limitEntireViewPort = false;
@@ -57,8 +64,15 @@ class Camera {
         const clampedDestination = simpleClamping(destination, this._positionBoundary);
         this.setPosition(clampedDestination);
     }
+
+    setZoomLevelBy(deltaZoomLevel: number){
+        this.setZoomLevel(this._zoomLevel + deltaZoomLevel);
+    }
     
     setZoomLevel(targetZoom: number){
+        if(!withinZoomLevelBoundary(targetZoom, this._zoomLevelBoundary)){
+            return;
+        }
         this._zoomLevel = targetZoom;
     }
     
@@ -233,6 +247,10 @@ function clampingEntireViewPort(viewPortWidth: number, viewPortHeight: number, t
     });
 
     return vectorAddition(delta, targetCameraPosition);
+}
+
+export function withinZoomLevelBoundary(zoomLevel: number, zoomLevelBoundary: ZoomLevelBoundary): boolean {
+    return zoomLevel <= zoomLevelBoundary.max && zoomLevel >= zoomLevelBoundary.min;
 }
 
 export { Camera };
