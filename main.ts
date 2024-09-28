@@ -19,7 +19,7 @@ canvas.addEventListener("pointerdown", (event)=>{
 
 const context = canvas.getContext("2d");
 const camera = new Camera();
-const keyboardMouseInput = new KeyboardMouseInput(camera); // 加在這裡
+const keyboardMouseInput = new KeyboardMouseInput(camera, canvas); // 加在這裡
 const touchInput = new TouchInput(camera);
 
 canvas.addEventListener("pointerdown", keyboardMouseInput.pointerdownHandler);

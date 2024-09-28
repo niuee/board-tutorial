@@ -9,8 +9,10 @@ class KeyboardMouseInput {
 
     private spacebarPressed: boolean;
 
+    private canvas: HTMLCanvasElement;
 
-    constructor(camera: Camera){
+
+    constructor(camera: Camera, canvas: HTMLCanvasElement){
         this.isPanning = false;
         this.spacebarPressed = false;
         this.panStartPoint = {x: 0, y: 0};
@@ -22,6 +24,7 @@ class KeyboardMouseInput {
         this.keydownHandler = this.keydownHandler.bind(this); // 新增的兩個 listener
         this.keyupHandler = this.keyupHandler.bind(this); // 新增的兩個 listener
         this.wheelHandler = this.wheelHandler.bind(this);
+        this.canvas = canvas;
     }
 
     pointerdownHandler(event: PointerEvent): void {
@@ -89,9 +92,19 @@ class KeyboardMouseInput {
     wheelHandler(event: WheelEvent){
         event.preventDefault();
         if(event.ctrlKey){
+            const cursorPosition = {x: event.clientX, y: event.clientY};
+            const boundingBox = this.canvas.getBoundingClientRect();
+            const topLeftCorner = {x: boundingBox.left, y: boundingBox.top};
+            const viewPortCenter = {x: topLeftCorner.x + this.canvas.width / 2, y: topLeftCorner.y + this.canvas.height / 2};
+            const cursorPositionInViewPortSpace = {x: cursorPosition.x - viewPortCenter.x, y: cursorPosition.y - viewPortCenter.y};
+            // 我們先記錄一下在縮放之前，游標的位置在世界座標系是哪裡
+            const originalCursorPositionInWorld = this.camera.transformViewPort2WorldSpace(cursorPositionInViewPortSpace);
             // 縮放操作
             const deltaZoomLevel = -event.deltaY * this.camera.zoomLevel * 0.025;
             this.camera.setZoomLevelBy(deltaZoomLevel);
+            const postZoomCursorPositionInWorld = this.camera.transformViewPort2WorldSpace(cursorPositionInViewPortSpace);
+            const diff = vectorSubtraction(originalCursorPositionInWorld, postZoomCursorPositionInWorld);
+            this.camera.setPositionBy(diff);
         } else {
             // 平移操作
             const diff = {x: event.deltaX, y: event.deltaY};
