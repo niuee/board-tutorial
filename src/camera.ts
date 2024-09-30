@@ -33,6 +33,23 @@ class Camera {
         this.limitEntireViewPort = false;
     }
 
+    get positionBoundary(): PositionBoundary {
+        return this._positionBoundary;
+    }
+
+    get zoomLevelBoundary(): ZoomLevelBoundary {
+        return this._zoomLevelBoundary;
+    }
+
+    set zoomLevelBoundary(zoomLevelBoundary: ZoomLevelBoundary){
+        if (zoomLevelBoundary.min > zoomLevelBoundary.max){
+            const temp = zoomLevelBoundary.min;
+            zoomLevelBoundary.min = zoomLevelBoundary.max;
+            zoomLevelBoundary.max = temp;
+        }
+        this._zoomLevelBoundary = zoomLevelBoundary;
+    }
+
     get position(): Point {
         return this._position;
     }
@@ -251,6 +268,31 @@ function clampingEntireViewPort(viewPortWidth: number, viewPortHeight: number, t
 
 export function withinZoomLevelBoundary(zoomLevel: number, zoomLevelBoundary: ZoomLevelBoundary): boolean {
     return zoomLevel <= zoomLevelBoundary.max && zoomLevel >= zoomLevelBoundary.min;
+}
+
+export function getMinZoomLevel(viewPortWidth: number, viewPortHeight: number, positionBoundary: PositionBoundary): number{
+    const minZoomLevelBasedOnWidth = viewPortWidth / (positionBoundary.max.x - positionBoundary.min.x);
+    const minZoomLevelBasedOnHeight = viewPortHeight / (positionBoundary.max.y - positionBoundary.min.y);
+    return minZoomLevelBasedOnWidth > minZoomLevelBasedOnHeight ? minZoomLevelBasedOnWidth : minZoomLevelBasedOnHeight;
+}
+
+export function getMinZoomLevelWithCameraRotation(viewPortWidth: number, viewPortHeight: number, positionBoundary: PositionBoundary): number {
+    const steps = 10;
+    let rotation = 0;
+    const increment = Math.PI / (2 * steps);
+    const boundaryWidth = positionBoundary.max.x - positionBoundary.min.x;
+    const boundaryHeight = positionBoundary.max.y - positionBoundary.min.y;
+    let maxMinWidthZoomLevel = viewPortWidth / boundaryWidth;
+    let maxMinHeightZoomLevel = viewPortHeight / boundaryHeight;
+    for(let i = 0;  i < steps + 1; i++){
+        const widthPrime = viewPortHeight * Math.sin(rotation) + viewPortWidth * Math.cos(rotation);
+        const heightPrime = viewPortHeight * Math.cos(rotation) + viewPortWidth * Math.sin(rotation);
+
+        maxMinWidthZoomLevel = Math.max(maxMinWidthZoomLevel, widthPrime / boundaryWidth);
+        maxMinHeightZoomLevel = Math.max(maxMinHeightZoomLevel, heightPrime / boundaryHeight);
+        rotation += increment;
+    }
+    return maxMinWidthZoomLevel > maxMinHeightZoomLevel ? maxMinWidthZoomLevel : maxMinHeightZoomLevel;
 }
 
 export { Camera };

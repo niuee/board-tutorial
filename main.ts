@@ -1,6 +1,8 @@
 import { Camera } from "./src/camera";
 import { KeyboardMouseInput } from "./src/keyboardmouse-input";
 import { TouchInput } from "./src/touch-input";
+import { getMinZoomLevel } from "./src/camera";
+
 
 const canvas = document.querySelector("canvas") as HTMLCanvasElement;
 
@@ -71,6 +73,19 @@ function step(timestamp: number){
     context.stroke();
 
     window.requestAnimationFrame(step); // 要記得遞回呼叫 requestAnimationFrame 不然動畫就只會有第一幀。
+}
+
+function attributeCallback(mutations: MutationRecord[], observer: MutationObserver){
+    for(let mutation of mutations){
+        if(mutation.type === "attributes" && (mutation.attributeName === "width" || mutation.attributeName === "height") && camera.limitEntireViewPort){
+            camera.viewPortWidth = canvas.width;
+            camera.viewPortHeight = canvas.height;
+            const updatedMinZoomLevel = getMinZoomLevel(canvas.width, canvas.height, camera.positionBoundary);
+            if(updatedMinZoomLevel > camera.zoomLevelBoundary.min){
+                camera.zoomLevelBoundary = {min: updatedMinZoomLevel, max: camera.zoomLevelBoundary.max};
+            }
+        }
+    }
 }
 
 // 可以把下面的註解解除掉，調整相機的位置、縮放倍率、以及旋轉角度去觀察相機對畫面產生的影響
