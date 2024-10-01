@@ -10,12 +10,20 @@ export type ZoomLevelBoundary = {
     min: number;
     max: number;
 }
+
+type RotationBoundary = {
+    start: number;
+    end: number;
+    positiveDirection: boolean;
+    startForTieBreak: boolean;
+}
 class Camera {
     private _position: Point;
     private _zoomLevel: number;
     private _rotation: number;
     private _positionBoundary: PositionBoundary;
     private _zoomLevelBoundary: ZoomLevelBoundary;
+    private _rotationBoundary?: RotationBoundary;
 
     public viewPortWidth: number;
     public viewPortHeight: number;
@@ -48,6 +56,17 @@ class Camera {
             zoomLevelBoundary.max = temp;
         }
         this._zoomLevelBoundary = zoomLevelBoundary;
+    }
+
+    set rotationBoundary(rotationBoundary: RotationBoundary) {
+        const validatedRotationBoundary = {...rotationBoundary};
+        if (rotationBoundary.start > Math.PI * 2 || rotationBoundary.start < 0){
+            validatedRotationBoundary.start = normalizeAngle(rotationBoundary.start);
+        }
+        if (rotationBoundary.end > Math.PI * 2 || rotationBoundary.end < 0){
+            validatedRotationBoundary.end = normalizeAngle(rotationBoundary.end);
+        }
+        this._rotationBoundary = rotationBoundary;
     }
 
     get position(): Point {
@@ -94,7 +113,18 @@ class Camera {
     }
     
     setRotation(rotation: number){
-        this._rotation = rotation;
+        if(this._rotationBoundary != undefined && !rotationWithinBoundary(rotation, this._rotationBoundary)){
+            return;
+        }
+        this._rotation = normalizeAngle(rotation);
+    }
+
+    setRotationBy(deltaRotation: number){
+        let targetAngle = normalizeAngle(this._rotation + deltaRotation);
+        if(this._rotationBoundary){
+            targetAngle = clampRotation(targetAngle, this._rotationBoundary);
+        }
+        this.setRotation(targetAngle);
     }
 
     transformViewPort2WorldSpace(point: Point): Point {
@@ -293,6 +323,70 @@ export function getMinZoomLevelWithCameraRotation(viewPortWidth: number, viewPor
         rotation += increment;
     }
     return maxMinWidthZoomLevel > maxMinHeightZoomLevel ? maxMinWidthZoomLevel : maxMinHeightZoomLevel;
+}
+
+function normalizeAngle(angle: number): number {
+    let normalizedAngle = angle;
+    normalizedAngle = normalizedAngle % (2 * Math.PI);
+    if (normalizedAngle >= 0){
+        return normalizedAngle;
+    }
+    return normalizedAngle + Math.PI * 2;
+}
+
+function deg2rad(degree: number): number {
+    return degree * Math.PI / 180;
+}
+
+function rad2deg(radian: number): number {
+    return radian * 180 / Math.PI;
+}
+
+function angleSpan(from: number, to: number): number {
+    const normalizedFrom = normalizeAngle(from);
+    const normalizedTo = normalizeAngle(to);
+
+    const diff = normalizedTo - normalizedFrom;
+    if(Math.abs(diff) <= Math.PI){
+        return diff;
+    }
+    return diff - Math.PI * 2;
+}
+
+function rotationWithinBoundary(rotation: number, rotationBoundary: RotationBoundary): boolean {
+    const normalizedRotation = normalizeAngle(rotation);
+    let angleFromStart = normalizedRotation - rotationBoundary.start;
+    if (angleFromStart < 0){
+        angleFromStart += (Math.PI * 2);
+    }
+    if (!rotationBoundary.positiveDirection && angleFromStart > 0){
+        angleFromStart = Math.PI * 2 - angleFromStart;
+    }
+    let angleRange = rotationBoundary.end - rotationBoundary.start;
+    if(angleRange < 0){
+        angleRange += (Math.PI * 2);
+    }
+    if(!rotationBoundary.positiveDirection && angleRange > 0){
+        angleRange = Math.PI * 2 - angleRange;
+    }
+
+    return angleRange >= angleFromStart;
+}
+
+function clampRotation(rotation: number, rotationBoundary: RotationBoundary): number {
+    if(rotationWithinBoundary(rotation, rotationBoundary)){
+        return rotation;
+    }
+
+    const angleFromStart = angleSpan(rotationBoundary.start, rotation);
+    const angleFromEnd = angleSpan(rotationBoundary.end, rotation);
+    if (Math.abs(angleFromStart) < Math.abs(angleFromEnd)){
+        return rotationBoundary.start;
+    }
+    if (Math.abs(angleFromStart) == Math.abs(angleFromEnd) && rotationBoundary.startForTieBreak){
+        return rotationBoundary.start;
+    }
+    return rotationBoundary.end;
 }
 
 export { Camera };
