@@ -1,5 +1,6 @@
 import { Point } from "vector";
 import { multiplyByScalar, rotateVector, vectorAddition, vectorSubtraction, getLineSegmentIntersection } from "./vector";
+import { CameraObserver } from "./camera-observer"
 
 export type PositionBoundary = {
     min: Point;
@@ -30,6 +31,8 @@ class Camera {
 
     public limitEntireViewPort: boolean;
 
+    private _cameraObserver: CameraObserver;
+
     constructor(viewPortWidth: number = 500, viewPortHeight: number = 500, positionBoundary: PositionBoundary = {min: {x: -1000, y: -1000}, max: {x: 1000, y: 1000}}, zoomLevelBoundary: ZoomLevelBoundary = {min: 0.1, max: 10}){
         this._position = {x: 0, y: 0};
         this._zoomLevel = 1; // 縮放程度不能夠小於或是等於 0。
@@ -39,6 +42,7 @@ class Camera {
         this.viewPortHeight = viewPortHeight;
         this.viewPortWidth = viewPortWidth;
         this.limitEntireViewPort = false;
+        this._cameraObserver = new CameraObserver();
     }
 
     get positionBoundary(): PositionBoundary {
@@ -88,7 +92,9 @@ class Camera {
         if(!withinPositionBoundary(destination, this._positionBoundary)){
             return;
         }
+        const origin = {...this._position};
         this._position = destination;
+        this._cameraObserver.notifyPan(origin, {...this._position}, {position: {...this._position}, zoomLevel: this._zoomLevel, rotation: this._rotation});
     }
 
     setPositionBy(offset: Point){
@@ -109,14 +115,18 @@ class Camera {
         if(!withinZoomLevelBoundary(targetZoom, this._zoomLevelBoundary)){
             return;
         }
+        const origin = this._zoomLevel;
         this._zoomLevel = targetZoom;
+        this._cameraObserver.notifyZoom(origin, this._zoomLevel, {position: {...this._position}, zoomLevel: this._zoomLevel, rotation: this._rotation});
     }
     
     setRotation(rotation: number){
         if(this._rotationBoundary != undefined && !rotationWithinBoundary(rotation, this._rotationBoundary)){
             return;
         }
+        const origin = this._rotation;
         this._rotation = normalizeAngle(rotation);
+        this._cameraObserver.notifyRotate(origin, this._rotation, {position: {...this._position}, zoomLevel: this._zoomLevel, rotation: this._rotation});
     }
 
     setRotationBy(deltaRotation: number){
