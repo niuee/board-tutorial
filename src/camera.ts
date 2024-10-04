@@ -1,5 +1,5 @@
 import { Point } from "vector";
-import { multiplyByScalar, rotateVector, vectorAddition, vectorSubtraction, getLineSegmentIntersection } from "./vector";
+import { multiplyByScalar, rotateVector, vectorAddition, vectorSubtraction, getLineSegmentIntersection, dotProduct } from "./vector";
 import { CameraObserver } from "./camera-observer"
 
 export type PositionBoundary = {
@@ -397,6 +397,26 @@ function clampRotation(rotation: number, rotationBoundary: RotationBoundary): nu
         return rotationBoundary.start;
     }
     return rotationBoundary.end;
+}
+
+function restrictXTranslation(delta: Point): Point {
+    return {x: 0, y: delta.y};
+}
+
+function restrictYTranslation(delta: Point): Point {
+    return {x: delta.x, y: 0};
+}
+
+function restrictRelativeXTranslation(delta: Point, cameraRotation: number): Point {
+    let verticalDirection = rotateVector({x: 0, y: 1}, cameraRotation);
+    const magnitude = dotProduct(delta, verticalDirection);
+    return multiplyByScalar(verticalDirection, magnitude);
+}
+
+function restrictRelativeYTranslation(delta: Point, cameraRotation: number): Point {
+    let horizontalDirection = rotateVector({x: 1, y: 0}, cameraRotation);
+    const magnitude = dotProduct(delta, horizontalDirection);
+    return multiplyByScalar(horizontalDirection, magnitude);
 }
 
 export { Camera };
